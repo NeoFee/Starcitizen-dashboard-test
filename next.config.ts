@@ -5,8 +5,8 @@ const CSP = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  // Wildcard subdomains for RSI and YouTube image CDNs
-  "img-src 'self' data: https://*.robertsspaceindustries.com https://*.redd.it https://*.ytimg.com https://img.youtube.com https://*.star-citizen.wiki",
+  // Wildcard subdomains for RSI, YouTube, and Twitch image CDNs
+  "img-src 'self' data: https://*.robertsspaceindustries.com https://*.redd.it https://*.ytimg.com https://img.youtube.com https://*.star-citizen.wiki https://*.jtvnw.net",
   "frame-src https://www.youtube.com https://player.twitch.tv",
   "connect-src 'self'",
   "media-src 'self'",
@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.ytimg.com" },
       { protocol: "https", hostname: "img.youtube.com" },
       { protocol: "https", hostname: "*.star-citizen.wiki" },
+      { protocol: "https", hostname: "*.jtvnw.net" },
     ],
   },
 
