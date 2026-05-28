@@ -3,7 +3,11 @@
 import useSWR from "swr";
 import type { StatusData } from "@/lib/types";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = (url: string) =>
+  fetch(url).then((r) => {
+    if (!r.ok) throw new Error(`Status ${r.status}`);
+    return r.json();
+  });
 
 export function useStatus() {
   const { data, error, isLoading } = useSWR<StatusData>(

@@ -13,14 +13,28 @@ function normalizeStatus(raw: string): StatusLevel {
   return map[raw] ?? "unknown";
 }
 
-export async function fetchStatus(): Promise<StatusData> {
-  const [statusRes, componentsRes, incidentsRes] = await Promise.all([
-    fetch(STATUS_URLS.status, { next: { revalidate: 120 } }),
-    fetch(STATUS_URLS.components, { next: { revalidate: 120 } }),
-    fetch(STATUS_URLS.incidents, { next: { revalidate: 120 } }),
-  ]);
+const UNKNOWN_STATUS: StatusData = {
+  overall: "unknown",
+  description: "Status nicht verfügbar",
+  components: [],
+  activeIncidents: [],
+  fetchedAt: new Date().toISOString(),
+};
 
-  if (!statusRes.ok) throw new Error(`Status fetch failed: ${statusRes.status}`);
+export async function fetchStatus(): Promise<StatusData> {
+  let statusRes: Response, componentsRes: Response, incidentsRes: Response;
+
+  try {
+    [statusRes, componentsRes, incidentsRes] = await Promise.all([
+      fetch(STATUS_URLS.status, { next: { revalidate: 120 } }),
+      fetch(STATUS_URLS.components, { next: { revalidate: 120 } }),
+      fetch(STATUS_URLS.incidents, { next: { revalidate: 120 } }),
+    ]);
+  } catch {
+    return { ...UNKNOWN_STATUS, fetchedAt: new Date().toISOString() };
+  }
+
+  if (!statusRes.ok) return { ...UNKNOWN_STATUS, fetchedAt: new Date().toISOString() };
 
   const [statusJson, componentsJson, incidentsJson] = await Promise.all([
     statusRes.json(),
