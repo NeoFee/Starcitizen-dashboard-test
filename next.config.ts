@@ -2,15 +2,12 @@ import type { NextConfig } from "next";
 
 const CSP = [
   "default-src 'self'",
-  // Next.js requires unsafe-inline for its runtime scripts; use nonces for stricter setups
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  // Images come from several trusted CDNs
-  "img-src 'self' data: https://robertsspaceindustries.com https://media.robertsspaceindustries.com https://*.redd.it https://i.ytimg.com https://cdn.star-citizen.wiki https://media.star-citizen.wiki",
-  // YouTube + Twitch embeds
+  // Wildcard subdomains for RSI and YouTube image CDNs
+  "img-src 'self' data: https://*.robertsspaceindustries.com https://*.redd.it https://*.ytimg.com https://img.youtube.com https://*.star-citizen.wiki",
   "frame-src https://www.youtube.com https://player.twitch.tv",
-  // Outbound fetches from the browser (SWR, etc.)
   "connect-src 'self'",
   "media-src 'self'",
   "object-src 'none'",
@@ -21,13 +18,12 @@ const CSP = [
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "*.robertsspaceindustries.com" },
       { protocol: "https", hostname: "robertsspaceindustries.com" },
-      { protocol: "https", hostname: "media.robertsspaceindustries.com" },
-      // Reddit uses multiple CDN subdomains; wildcard is intentional
       { protocol: "https", hostname: "*.redd.it" },
-      { protocol: "https", hostname: "i.ytimg.com" },
-      { protocol: "https", hostname: "cdn.star-citizen.wiki" },
-      { protocol: "https", hostname: "media.star-citizen.wiki" },
+      { protocol: "https", hostname: "*.ytimg.com" },
+      { protocol: "https", hostname: "img.youtube.com" },
+      { protocol: "https", hostname: "*.star-citizen.wiki" },
     ],
   },
 

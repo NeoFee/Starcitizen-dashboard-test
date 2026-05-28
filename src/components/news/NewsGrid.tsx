@@ -5,9 +5,10 @@ import SkeletonCard from "./SkeletonCard";
 interface Props {
   items: NewsItem[];
   isLoading: boolean;
+  onVideoPlay?: (videoId: string, title: string) => void;
 }
 
-export default function NewsGrid({ items, isLoading }: Props) {
+export default function NewsGrid({ items, isLoading, onVideoPlay }: Props) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -42,7 +43,7 @@ export default function NewsGrid({ items, isLoading }: Props) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {items.map((item) => (
-        <NewsCard key={item.id} item={item} />
+        <NewsCard key={item.id} item={item} onVideoPlay={onVideoPlay} />
       ))}
     </div>
   );

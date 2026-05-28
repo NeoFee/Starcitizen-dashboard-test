@@ -9,7 +9,7 @@ export interface YoutubeChannel {
 
 export interface TwitchStreamer {
   id: string;
-  login: string;        // Twitch username (lowercase)
+  login: string;        // Twitch username (lowercase, exact)
   displayName: string;
   description: string;
   avatarLetter: string;
@@ -49,17 +49,18 @@ export const YOUTUBE_CHANNELS: YoutubeChannel[] = [
     avatarLetter: "CK",
     accentColor: "#ec4899",
   },
-  {
-    id: "sub-surge",
-    channelId: "UCOjEBlHCEHlIJBFvG-2LVNQ",
-    name: "Sub_Surge",
-    description: "Mining, Trading und detaillierte Gameplay-Guides für Star Citizen.",
-    avatarLetter: "SS",
-    accentColor: "#8b5cf6",
-  },
 ];
 
+// Verified active SC Twitch streamers (checked 2025-05)
 export const TWITCH_STREAMERS: TwitchStreamer[] = [
+  {
+    id: "starcitizen-official",
+    login: "starcitizen",
+    displayName: "Star Citizen",
+    description: "Offizieller CIG-Stream: Events & Präsentationen",
+    avatarLetter: "SC",
+    accentColor: "#00d4ff",
+  },
   {
     id: "morphologis-t",
     login: "morphologis",
@@ -69,43 +70,27 @@ export const TWITCH_STREAMERS: TwitchStreamer[] = [
     accentColor: "#f59e0b",
   },
   {
-    id: "sub-surge-t",
-    login: "sub_surge",
-    displayName: "Sub_Surge",
-    description: "Mining, Trading & Gameplay-Guides",
-    avatarLetter: "SS",
-    accentColor: "#8b5cf6",
-  },
-  {
-    id: "avenger-one-t",
-    login: "avenger_one",
-    displayName: "Avenger_One",
-    description: "SC-News, Guides & Community",
-    avatarLetter: "A",
-    accentColor: "#10b981",
-  },
-  {
-    id: "citizen-kate-t",
-    login: "citizenkate",
-    displayName: "Citizen Kate",
-    description: "Exploration & Story-Inhalte",
-    avatarLetter: "CK",
-    accentColor: "#ec4899",
-  },
-  {
     id: "karolinger",
     login: "karolinger",
     displayName: "Karolinger",
-    description: "Star Citizen Community & Events",
+    description: "SciFi, Tech & Star Citizen Community",
     avatarLetter: "K",
     accentColor: "#ef4444",
   },
   {
-    id: "starcitizen-official",
-    login: "starcitizen",
-    displayName: "Star Citizen",
-    description: "Offizieller CIG-Stream: Events & Präsentationen",
-    avatarLetter: "SC",
-    accentColor: "#00d4ff",
+    id: "citizenspooner",
+    login: "citizenspooner",
+    displayName: "CitizenSpooner",
+    description: "Aktiver SC-Streamer, Contested Zones Champion 2025",
+    avatarLetter: "CS",
+    accentColor: "#10b981",
+  },
+  {
+    id: "subliminalstv",
+    login: "subliminalstv",
+    displayName: "SubliminalsTV",
+    description: "Twitch Partner & SC-Community-Betreiber",
+    avatarLetter: "SL",
+    accentColor: "#8b5cf6",
   },
 ];

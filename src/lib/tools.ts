@@ -6,8 +6,7 @@ export type ToolCategory =
   | "database"
   | "community"
   | "reference"
-  | "missions"
-  | "org";
+  | "missions";
 
 export interface Tool {
   id: string;
@@ -27,7 +26,6 @@ export const TOOL_CATEGORIES: Record<ToolCategory, { label: string; color: strin
   community: { label: "Community",  color: "text-orange-400",  bg: "bg-orange-900/30 border-orange-700/40" },
   reference: { label: "Referenz",   color: "text-blue-400",    bg: "bg-blue-900/30 border-blue-700/40" },
   missions:  { label: "Missionen",  color: "text-pink-400",    bg: "bg-pink-900/30 border-pink-700/40" },
-  org:       { label: "Org",        color: "text-teal-400",    bg: "bg-teal-900/30 border-teal-700/40" },
 };
 
 export const TOOLS: Tool[] = [
@@ -248,19 +246,4 @@ export const TOOLS: Tool[] = [
     category: "missions",
   },
 
-  // ── Org ──
-  {
-    id: "rsi-orgs",
-    name: "RSI Org Suche",
-    url: "https://robertsspaceindustries.com/orgs",
-    description: "Offizielle Organisations-Suche: Finde eine Org nach Größe, Fokus, Sprache und Spielstil.",
-    category: "org",
-  },
-  {
-    id: "rsi-player",
-    name: "RSI Spieler-Suche",
-    url: "https://robertsspaceindustries.com/citizens",
-    description: "Suche nach Citizen-Profilen, Org-Mitgliedschaften, Rang und Beitritt-Datum.",
-    category: "org",
-  },
 ];
