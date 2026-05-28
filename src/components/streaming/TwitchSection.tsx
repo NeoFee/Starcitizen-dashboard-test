@@ -10,8 +10,12 @@ interface EmbedState { login: string; displayName: string }
 export default function TwitchSection() {
   const [embed, setEmbed] = useState<EmbedState | null>(null);
 
+  // Use only the hostname; Twitch validates this server-side.
+  // Falls back to "localhost" for local development.
   const parentDomain =
-    typeof window !== "undefined" ? window.location.hostname : "localhost";
+    typeof window !== "undefined"
+      ? window.location.hostname
+      : "localhost";
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -66,7 +70,8 @@ export default function TwitchSection() {
             <iframe
               className="absolute inset-0 w-full h-full"
               src={`https://player.twitch.tv/?channel=${embed.login}&parent=${parentDomain}`}
-              allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            allowFullScreen
             />
           </div>
         </div>

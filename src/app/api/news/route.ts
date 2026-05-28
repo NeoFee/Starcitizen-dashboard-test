@@ -4,6 +4,7 @@ import { fetchReddit } from "@/lib/fetchers/fetchReddit";
 import { fetchWiki } from "@/lib/fetchers/fetchWiki";
 import { fetchYouTube } from "@/lib/fetchers/fetchYouTube";
 import type { NewsItem, NewsSource, NewsResponse, SourceError } from "@/lib/types";
+import { checkRateLimit } from "@/lib/apiHelpers";
 
 export const revalidate = 300;
 
@@ -15,6 +16,9 @@ const fetchers: Record<NewsSource, () => Promise<NewsItem[]>> = {
 };
 
 export async function GET(request: NextRequest) {
+  const limited = checkRateLimit(request);
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const sourceParam = searchParams.get("source");
 

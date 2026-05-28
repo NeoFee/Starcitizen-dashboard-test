@@ -25,7 +25,14 @@ const parser = new Parser<Record<string, unknown>, YTItem>({
 });
 
 export async function fetchYouTube(): Promise<NewsItem[]> {
-  const feed = await parser.parseURL(SOURCES.youtube.feedUrl!);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  let feed: Awaited<ReturnType<typeof parser.parseURL>>;
+  try {
+    feed = await parser.parseURL(SOURCES.youtube.feedUrl!);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   return feed.items.slice(0, MAX_ITEMS_PER_SOURCE).map((item) => {
     const videoId =

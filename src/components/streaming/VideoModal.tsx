@@ -44,6 +44,7 @@ export default function VideoModal({ videoId, title, onClose }: Props) {
             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"
             allowFullScreen
           />
         </div>

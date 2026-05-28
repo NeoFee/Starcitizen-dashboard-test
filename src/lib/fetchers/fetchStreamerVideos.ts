@@ -32,7 +32,14 @@ export async function fetchStreamerVideos(channelId?: string): Promise<NewsItem[
   const results = await Promise.allSettled(
     channels.map(async (ch) => {
       const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${ch.channelId}`;
-      const feed = await parser.parseURL(url);
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 10_000);
+      let feed: Awaited<ReturnType<typeof parser.parseURL>>;
+      try {
+        feed = await parser.parseURL(url);
+      } finally {
+        clearTimeout(t);
+      }
       return feed.items.slice(0, 6).map((item): NewsItem => {
         const videoId = item["yt:videoId"] ?? "";
         const mediaGroup = item["media:group"];
