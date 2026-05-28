@@ -15,7 +15,11 @@ export default function NewsDashboard() {
     <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex flex-col gap-4">
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <SourceFilter active={filter} onChange={setFilter} />
+        <SourceFilter
+          active={filter}
+          onChange={setFilter}
+          unavailable={errors.map((e) => e.source)}
+        />
         <RefreshButton
           onRefresh={() => refresh()}
           isLoading={isLoading}
