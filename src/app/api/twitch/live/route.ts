@@ -8,8 +8,9 @@ interface TokenCache {
   expiresAt: number;
 }
 
-// Module-level cache: reused across requests within the same server instance
+// Module-level caches: reused across requests within the same server instance
 let tokenCache: TokenCache | null = null;
+let gameIdCache: string | null = null;
 
 async function getAppToken(clientId: string, clientSecret: string): Promise<string> {
   if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
@@ -40,6 +41,36 @@ async function getAppToken(clientId: string, clientSecret: string): Promise<stri
   return tokenCache.token;
 }
 
+async function getStarCitizenGameId(clientId: string, token: string): Promise<string> {
+  if (gameIdCache) return gameIdCache;
+
+  const res = await fetch(
+    "https://api.twitch.tv/helix/games?name=Star+Citizen",
+    {
+      headers: {
+        "Client-ID": clientId,
+        Authorization: `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(8_000),
+    }
+  );
+
+  if (!res.ok) {
+    if (res.status === 401) tokenCache = null;
+    throw new Error(`Twitch Games API returned ${res.status}`);
+  }
+
+  const json = await res.json() as { data: Array<{ id: string; name: string }> };
+  const game = json.data?.[0];
+
+  if (!game) {
+    throw new Error("Star Citizen not found in Twitch game directory");
+  }
+
+  gameIdCache = game.id;
+  return gameIdCache;
+}
+
 export interface LiveStream {
   login: string;
   displayName: string;
@@ -68,10 +99,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<TwitchLive
 
   try {
     const token = await getAppToken(clientId, clientSecret);
+    const gameId = await getStarCitizenGameId(clientId, token);
 
-    // Star Citizen game_id: 499973
     const res = await fetch(
-      "https://api.twitch.tv/helix/streams?game_id=499973&first=10",
+      `https://api.twitch.tv/helix/streams?game_id=${gameId}&first=10`,
       {
         headers: {
           "Client-ID": clientId,
@@ -82,19 +113,20 @@ export async function GET(request: NextRequest): Promise<NextResponse<TwitchLive
     );
 
     if (!res.ok) {
-      // Token may have expired — clear cache and let next request retry
       if (res.status === 401) tokenCache = null;
       throw new Error(`Twitch Helix API returned ${res.status}`);
     }
 
-    const json = await res.json() as { data: Array<{
-      user_login: string;
-      user_name: string;
-      title: string;
-      viewer_count: number;
-      thumbnail_url: string;
-      started_at: string;
-    }> };
+    const json = await res.json() as {
+      data: Array<{
+        user_login: string;
+        user_name: string;
+        title: string;
+        viewer_count: number;
+        thumbnail_url: string;
+        started_at: string;
+      }>;
+    };
 
     const streams: LiveStream[] = (json.data ?? []).map((s) => ({
       login: s.user_login,
