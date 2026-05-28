@@ -51,16 +51,17 @@ export interface StatusComponent {
 export interface Incident {
   id: string;
   name: string;
-  status: string;
+  status: string;       // "investigating" | "identified" | "monitoring" | "resolved" | "scheduled"
   impact: string;
   updatedAt: string;
   latestUpdate: string;
+  resolved: boolean;
 }
 
 export interface StatusData {
   overall: StatusLevel;
   description: string;
   components: StatusComponent[];
-  activeIncidents: Incident[];
+  incidents: Incident[];          // all recent incidents (active + resolved)
   fetchedAt: string;
 }

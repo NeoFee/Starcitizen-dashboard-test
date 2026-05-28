@@ -1,40 +1,61 @@
+"use client";
+
 import Link from "next/link";
+
+const NAV = [
+  { href: "#news",    label: "News" },
+  { href: "#streams", label: "Streams" },
+  { href: "#tools",   label: "Tools" },
+];
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1a2332] bg-[#020409]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[#1a2332] bg-[#020409]/95 backdrop-blur-md">
+      {/* Cyan top accent line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded border border-cyan-500/50 bg-cyan-500/10">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5 h-5 text-cyan-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
-                />
+        <div className="flex h-13 items-center justify-between gap-4">
+
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
+            <div className="relative flex items-center justify-center w-8 h-8 rounded border border-cyan-500/40 bg-cyan-500/8 group-hover:border-cyan-400/60 transition-colors">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polygon points="12,2 22,12 12,22 2,12" strokeLinejoin="round"/>
+                <polygon points="12,7 17,12 12,17 7,12" fill="currentColor" opacity="0.3" stroke="none"/>
+                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
               </svg>
             </div>
-            <span
-              className="text-lg font-bold tracking-widest text-cyan-400 uppercase"
-              style={{ fontFamily: "Orbitron, monospace" }}
-            >
-              UEE News
-            </span>
+            <div className="flex flex-col leading-none">
+              <span className="text-xs font-bold tracking-[0.2em] text-cyan-400 uppercase" style={{ fontFamily: "Orbitron, monospace" }}>
+                UEE News
+              </span>
+              <span className="text-[9px] tracking-widest text-slate-600 uppercase">Network</span>
+            </div>
           </Link>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="hidden sm:inline tracking-wider uppercase">
-              Live Feed
+          {/* Navigation */}
+          <nav className="hidden sm:flex items-center gap-0.5">
+            {NAV.map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-cyan-400 rounded hover:bg-cyan-500/8 transition-all tracking-widest uppercase"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+
+          {/* Live indicator */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-50" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
             </span>
+            <span className="hidden sm:inline text-[10px] tracking-widest uppercase text-slate-500">Live</span>
           </div>
+
         </div>
       </div>
     </header>

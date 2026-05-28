@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;500;600&display=swap");
 
 @import "tailwindcss";
 
@@ -6,6 +6,7 @@
   --background: #020409;
   --foreground: #e2e8f0;
   --sc-cyan: #00d4ff;
+  --sc-gold: #c8a84b;
   --sc-blue: #0066cc;
   --sc-card: #0a0f1a;
   --sc-border: #1a2332;
@@ -16,33 +17,115 @@
   --color-foreground: var(--foreground);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Space Grotesk", system-ui, sans-serif;
   min-height: 100vh;
+  /* Subtle noise texture for depth */
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, #001a2e44 0%, transparent 70%);
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+/* ── Animated star field ─────────────────────────────────────── */
+.star-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
 }
-::-webkit-scrollbar-track {
-  background: #0a0f1a;
+.star-field::before,
+.star-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, #ffffff55 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 55%, #ffffff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 10%, #ffffff44 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, #ffffff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 35%, #ffffff55 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 80%, #ffffff22 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 15% 85%, #ffffff44 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 40%, #ffffff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, #ffffff55 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 90%, #ffffff22 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 50%, #ffffff44 0%, transparent 100%),
+    radial-gradient(1px 1px at 5%  60%, #ffffff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 25%, #ffffff55 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 95%, #ffffff22 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 45% 65%, #8ecbff44 0%, transparent 100%),
+    radial-gradient(1px 1px at 20% 45%, #8ecbff33 0%, transparent 100%);
 }
-::-webkit-scrollbar-thumb {
-  background: #1a3a5c;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 212, 255, 0.4);
+.star-field::after {
+  background-image:
+    radial-gradient(1px 1px at 8%  30%, #ffffff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 75%, #ffffff44 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 52% 5%,  #ffffff55 0%, transparent 100%),
+    radial-gradient(1px 1px at 67% 88%, #ffffff22 0%, transparent 100%),
+    radial-gradient(1px 1px at 93% 42%, #ffffff44 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 68%, #ffffff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 22%, #ffffff55 0%, transparent 100%),
+    radial-gradient(1px 1px at 42% 48%, #8ecbff33 0%, transparent 100%),
+    radial-gradient(1px 1px at 95% 65%, #ffffff22 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 3%  92%, #ffffff44 0%, transparent 100%);
+  opacity: 0.7;
 }
 
-/* Line clamp utilities */
+/* ── Section dividers ────────────────────────────────────────── */
+.section-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #1a2e4a 20%, #1a2e4a 80%, transparent 100%);
+  margin: 0;
+}
+
+/* ── SC HUD corner decoration ────────────────────────────────── */
+.hud-corner {
+  position: relative;
+}
+.hud-corner::before,
+.hud-corner::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: rgba(0, 212, 255, 0.4);
+  border-style: solid;
+}
+.hud-corner::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.hud-corner::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+
+/* ── Scan-line overlay ───────────────────────────────────────── */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.08) 3px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+}
+
+/* ── Glow utilities ──────────────────────────────────────────── */
+.glow-cyan  { box-shadow: 0 0 20px rgba(0, 212, 255, 0.25); }
+.glow-gold  { box-shadow: 0 0 20px rgba(200, 168, 75, 0.25); }
+.text-sc-gold { color: var(--sc-gold); }
+
+/* ── Custom scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #070c15; }
+::-webkit-scrollbar-thumb { background: #1a3a5c; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.35); }
+
+/* ── Line clamp ──────────────────────────────────────────────── */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

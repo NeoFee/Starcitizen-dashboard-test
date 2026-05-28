@@ -18,7 +18,7 @@ const FALLBACK: StatusData = {
   overall: "unknown",
   description: "Status nicht verfügbar",
   components: [],
-  activeIncidents: [],
+  incidents: [],
   fetchedAt: new Date().toISOString(),
 };
 
@@ -34,8 +34,9 @@ function statusFromTitle(title: string): "resolved" | "investigating" | "monitor
 }
 
 function deriveOverall(incidents: Incident[]): StatusLevel {
-  if (incidents.length === 0) return "operational";
-  const statuses = incidents.map((i) => i.status);
+  const active = incidents.filter((i) => !i.resolved);
+  if (active.length === 0) return "operational";
+  const statuses = active.map((i) => i.status);
   if (statuses.includes("investigating")) return "major_outage";
   if (statuses.includes("identified")) return "partial_outage";
   if (statuses.includes("monitoring")) return "degraded_performance";
@@ -57,28 +58,29 @@ function normalizeLevel(raw: string): StatusLevel {
 
 async function fetchFromRSS(): Promise<Incident[]> {
   const feed = await parser.parseURL(STATUS_URLS.rss);
-  const activeIncidents: Incident[] = [];
+  const incidents: Incident[] = [];
 
-  for (const item of feed.items.slice(0, 10)) {
+  for (const item of feed.items.slice(0, 15)) {
     const title = item.title ?? "";
     const status = statusFromTitle(title);
-    if (status === "resolved") continue; // skip resolved incidents
+    const resolved = status === "resolved";
 
     const incidentTitle = title.includes(" - ")
       ? title.split(" - ").slice(1).join(" - ").trim()
       : title;
 
-    activeIncidents.push({
+    incidents.push({
       id: item.id ?? item.link ?? title,
       name: incidentTitle || title,
       status,
-      impact: status === "investigating" ? "critical" : "minor",
+      impact: status === "investigating" ? "critical" : resolved ? "none" : "minor",
       updatedAt: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
       latestUpdate: item.contentSnippet ?? "",
+      resolved,
     });
   }
 
-  return activeIncidents;
+  return incidents;
 }
 
 async function fetchComponents(): Promise<StatusComponent[]> {
@@ -118,7 +120,7 @@ export async function fetchStatus(): Promise<StatusData> {
     return { ...FALLBACK, fetchedAt: new Date().toISOString() };
   }
 
-  const activeIncidents = rssResult.status === "fulfilled" ? rssResult.value : [];
+  const incidents = rssResult.status === "fulfilled" ? rssResult.value : [];
   const components = componentsResult.status === "fulfilled" ? componentsResult.value : [];
 
   let overall: StatusLevel;
@@ -129,7 +131,7 @@ export async function fetchStatus(): Promise<StatusData> {
     description = jsonResult.value.description;
   } else {
     // Derive from RSS incidents when JSON API is unavailable
-    overall = deriveOverall(activeIncidents);
+    overall = deriveOverall(incidents);
     description =
       overall === "operational"
         ? "Alle Systeme betriebsbereit"
@@ -140,7 +142,7 @@ export async function fetchStatus(): Promise<StatusData> {
     overall,
     description,
     components,
-    activeIncidents,
+    incidents,
     fetchedAt: new Date().toISOString(),
   };
 }
