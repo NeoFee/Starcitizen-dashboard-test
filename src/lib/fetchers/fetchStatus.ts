@@ -1,7 +1,49 @@
+import Parser from "rss-parser";
 import type { StatusData, StatusLevel, StatusComponent, Incident } from "../types";
 import { STATUS_URLS } from "../constants";
 
-function normalizeStatus(raw: string): StatusLevel {
+type RSSItem = {
+  title?: string;
+  link?: string;
+  isoDate?: string;
+  pubDate?: string;
+  contentSnippet?: string;
+  content?: string;
+  id?: string;
+};
+
+const parser = new Parser<Record<string, unknown>, RSSItem>();
+
+const FALLBACK: StatusData = {
+  overall: "unknown",
+  description: "Status nicht verfügbar",
+  components: [],
+  activeIncidents: [],
+  fetchedAt: new Date().toISOString(),
+};
+
+// Statuspage prefixes incident titles with the current status keyword
+function statusFromTitle(title: string): "resolved" | "investigating" | "monitoring" | "identified" | "scheduled" | "unknown" {
+  const lower = title.toLowerCase();
+  if (lower.startsWith("resolved")) return "resolved";
+  if (lower.startsWith("investigating")) return "investigating";
+  if (lower.startsWith("monitoring")) return "monitoring";
+  if (lower.startsWith("identified")) return "identified";
+  if (lower.startsWith("scheduled")) return "scheduled";
+  return "unknown";
+}
+
+function deriveOverall(incidents: Incident[]): StatusLevel {
+  if (incidents.length === 0) return "operational";
+  const statuses = incidents.map((i) => i.status);
+  if (statuses.includes("investigating")) return "major_outage";
+  if (statuses.includes("identified")) return "partial_outage";
+  if (statuses.includes("monitoring")) return "degraded_performance";
+  if (statuses.includes("scheduled")) return "under_maintenance";
+  return "operational";
+}
+
+function normalizeLevel(raw: string): StatusLevel {
   const map: Record<string, StatusLevel> = {
     operational: "operational",
     degraded_performance: "degraded_performance",
@@ -13,75 +55,86 @@ function normalizeStatus(raw: string): StatusLevel {
   return map[raw] ?? "unknown";
 }
 
-const UNKNOWN_STATUS: StatusData = {
-  overall: "unknown",
-  description: "Status nicht verfügbar",
-  components: [],
-  activeIncidents: [],
-  fetchedAt: new Date().toISOString(),
-};
+async function fetchFromRSS(): Promise<Incident[]> {
+  const feed = await parser.parseURL(STATUS_URLS.rss);
+  const activeIncidents: Incident[] = [];
 
-export async function fetchStatus(): Promise<StatusData> {
-  let statusRes: Response, componentsRes: Response, incidentsRes: Response;
+  for (const item of feed.items.slice(0, 10)) {
+    const title = item.title ?? "";
+    const status = statusFromTitle(title);
+    if (status === "resolved") continue; // skip resolved incidents
 
-  try {
-    [statusRes, componentsRes, incidentsRes] = await Promise.all([
-      fetch(STATUS_URLS.status, { next: { revalidate: 120 } }),
-      fetch(STATUS_URLS.components, { next: { revalidate: 120 } }),
-      fetch(STATUS_URLS.incidents, { next: { revalidate: 120 } }),
-    ]);
-  } catch {
-    return { ...UNKNOWN_STATUS, fetchedAt: new Date().toISOString() };
+    const incidentTitle = title.includes(" - ")
+      ? title.split(" - ").slice(1).join(" - ").trim()
+      : title;
+
+    activeIncidents.push({
+      id: item.id ?? item.link ?? title,
+      name: incidentTitle || title,
+      status,
+      impact: status === "investigating" ? "critical" : "minor",
+      updatedAt: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
+      latestUpdate: item.contentSnippet ?? "",
+    });
   }
 
-  if (!statusRes.ok) return { ...UNKNOWN_STATUS, fetchedAt: new Date().toISOString() };
+  return activeIncidents;
+}
 
-  const [statusJson, componentsJson, incidentsJson] = await Promise.all([
-    statusRes.json(),
-    componentsRes.ok ? componentsRes.json() : { components: [] },
-    incidentsRes.ok ? incidentsRes.json() : { incidents: [] },
-  ]);
-
-  const overall = normalizeStatus(statusJson?.status?.indicator ?? "unknown");
-  const description: string = statusJson?.status?.description ?? "Unknown";
-
-  const components: StatusComponent[] = (
-    componentsJson?.components ?? []
-  ).map(
-    (c: {
-      id: string;
-      name: string;
-      status: string;
-      group: boolean;
-      group_id: string | null;
-    }) => ({
+async function fetchComponents(): Promise<StatusComponent[]> {
+  const res = await fetch(STATUS_URLS.components, { next: { revalidate: 120 } });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return (json?.components ?? []).map(
+    (c: { id: string; name: string; status: string; group: boolean; group_id: string | null }) => ({
       id: c.id,
       name: c.name,
-      status: normalizeStatus(c.status),
+      status: normalizeLevel(c.status),
       group: c.group,
       groupId: c.group_id,
     })
   );
+}
 
-  const activeIncidents: Incident[] = (incidentsJson?.incidents ?? [])
-    .slice(0, 5)
-    .map(
-      (inc: {
-        id: string;
-        name: string;
-        status: string;
-        impact: string;
-        updated_at: string;
-        incident_updates?: Array<{ body: string }>;
-      }) => ({
-        id: inc.id,
-        name: inc.name,
-        status: inc.status,
-        impact: inc.impact,
-        updatedAt: inc.updated_at,
-        latestUpdate: inc.incident_updates?.[0]?.body ?? "",
-      })
-    );
+async function fetchOverallJSON(): Promise<{ overall: StatusLevel; description: string } | null> {
+  const res = await fetch(STATUS_URLS.status, { next: { revalidate: 120 } });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return {
+    overall: normalizeLevel(json?.status?.indicator ?? "unknown"),
+    description: json?.status?.description ?? "Unknown",
+  };
+}
+
+export async function fetchStatus(): Promise<StatusData> {
+  const [rssResult, jsonResult, componentsResult] = await Promise.allSettled([
+    fetchFromRSS(),
+    fetchOverallJSON(),
+    fetchComponents(),
+  ]);
+
+  // If RSS failed and JSON failed, return fallback
+  if (rssResult.status === "rejected" && jsonResult.status === "rejected") {
+    return { ...FALLBACK, fetchedAt: new Date().toISOString() };
+  }
+
+  const activeIncidents = rssResult.status === "fulfilled" ? rssResult.value : [];
+  const components = componentsResult.status === "fulfilled" ? componentsResult.value : [];
+
+  let overall: StatusLevel;
+  let description: string;
+
+  if (jsonResult.status === "fulfilled" && jsonResult.value) {
+    overall = jsonResult.value.overall;
+    description = jsonResult.value.description;
+  } else {
+    // Derive from RSS incidents when JSON API is unavailable
+    overall = deriveOverall(activeIncidents);
+    description =
+      overall === "operational"
+        ? "Alle Systeme betriebsbereit"
+        : "Störungen erkannt – Details unten";
+  }
 
   return {
     overall,

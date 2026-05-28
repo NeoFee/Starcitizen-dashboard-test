@@ -48,11 +48,9 @@ export const SOURCES: Record<
 };
 
 export const STATUS_URLS = {
+  rss: "https://status.robertsspaceindustries.com/index.xml",
   status: "https://status.robertsspaceindustries.com/api/v2/status.json",
-  components:
-    "https://status.robertsspaceindustries.com/api/v2/components.json",
-  incidents:
-    "https://status.robertsspaceindustries.com/api/v2/incidents.json",
+  components: "https://status.robertsspaceindustries.com/api/v2/components.json",
 };
 
 export const MAX_ITEMS_PER_SOURCE = 15;
